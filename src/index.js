@@ -166,7 +166,7 @@ async function handleRequest(request) {
 
       // 302 all folder requests that doesn't end with /
       if (!isRequestFolder) {
-        return Response.redirect(request.url + '/', 302)
+        return Response.redirect(origin+pathname+'/', 302)
       }
 
       return new Response(await renderFolderView(data.value, neoPathname, request), {
