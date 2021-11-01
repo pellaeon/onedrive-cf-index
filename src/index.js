@@ -129,8 +129,11 @@ async function handleRequest(request) {
 
       // Render file directly if url params 'raw' are given
       if (rawFile || !(fileExt in extensions)) {
+        // OneDrive sends the `content-disposition: attachment;` header,
+        // forcing the browser to pop up download dialog. If the user requests
+        // raw file, we should remove this header using proxied mode.
         return await handleFile(request, pathname, data['@microsoft.graph.downloadUrl'], {
-          proxied,
+          proxied: true,
           fileSize: data.size
         })
       }
