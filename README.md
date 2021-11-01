@@ -6,6 +6,39 @@
 
 ---
 
+# Pellaeon's custom version
+
+This version is derived from https://github.com/spencerwooo/onedrive-cf-index .
+
+Additional features:
+
+- `defaultRawFile` mode
+- Can show file inline in browser instead of always prompting for download
+
+## Deployment note
+
+### wrangler
+
+Do not use `npm` to install `wrangler`, it didn't work for me.
+
+If you don't often need to use wrangler, installing with `cargo` is also too bloated, just download the executable from https://github.com/cloudflare/wrangler/releases
+
+### Deploy
+
+The original deployment method doesn't work. Here's a flow that I figured out:
+
+1. Follow the original token retrieval guide below, until step 5.
+2. In step 5, use https://heymind.github.io/tools/microsoft-graph-api-auth (I'll refer to it as MGAA below) instead. Follow its instruction steps 1~4.
+3. In MGAA step 5, use `refresh_token.sh` in this repo instead. You will get a JSON response, remember its `refresh_token`. [Reference](https://github.com/spencerwooo/onedrive-cf-index/issues/13).
+4. Continue following the original guide.
+
+Note:
+- If you encounter `Your secret is too large, it must be 1kB or less.` in `wrangler`, see https://github.com/spencerwooo/onedrive-cf-index/issues/58#issuecomment-733419639
+- When obtaining tokens, if Microsoft warns you that you should use type "Single Page Application", don't use it, it's caused by the problem mentioned in step 3.
+- When obtaining tokens, if Microsoft warns you that you need to use "Proof Key for Code Exchange", you have registered an application of type "Single Page Application". Remove all URLs of that type from your Azure settings.
+
+---
+
 [![Hosted on Cloudflare Workers](https://img.shields.io/badge/Hosted%20on-CF%20Workers-f38020?logo=cloudflare&logoColor=f38020&labelColor=282d33)](https://storage.spencerwoo.com/)
 [![Deploy](https://github.com/spencerwooo/onedrive-cf-index/workflows/Deploy/badge.svg)](https://github.com/spencerwooo/onedrive-cf-index/actions?query=workflow%3ADeploy)
 [![README-CN](assets/chinese.svg)](./README-CN.md)
