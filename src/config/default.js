@@ -91,7 +91,14 @@ const config = {
    * Example: https://storage.spencerwoo.com/🥟%20Some%20test%20files/Previews/eb37c02438f.png?raw&proxied
    * You can also embed this link (url encoded) directly inside Markdown or HTML.
    */
-  proxyDownload: true
+  proxyDownload: true,
+
+  /**
+   * Feature: Default Raw File
+   * When the requested URL points to a file, defaults to returning the raw file, instead of showing preview.
+   * When this option is enabled, one can use raw=0 or raw=false to show preview.
+   */
+  defaultRawFile: true
 }
 
 // IIFE to set apiEndpoint & baseResource

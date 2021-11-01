@@ -67,11 +67,11 @@ async function handleRequest(request) {
     config.baseResource = `/sites/${await getSiteID(accessToken)}/drive`
   }
 
-  const { pathname, searchParams } = new URL(request.url)
+  const { origin, pathname, searchParams } = new URL(request.url)
   const neoPathname = pathname.replace(/pagination$/, '')
   const isRequestFolder = pathname.endsWith('/') || searchParams.get('page')
 
-  const rawFile = searchParams.get('raw') !== null
+  const rawFile = config.defaultRawFile ? searchParams.get('raw') !== '0' : searchParams.get('raw') !== null
   const thumbnail = config.thumbnail ? searchParams.get('thumbnail') : false
   const proxied = config.proxyDownload ? searchParams.get('proxied') !== null : false
 
