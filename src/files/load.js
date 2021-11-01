@@ -71,7 +71,15 @@ async function proxiedDownload(downloadUrl) {
   const remoteResp = await fetch(downloadUrl)
   const { readable, writable } = new TransformStream()
   remoteResp.body.pipeTo(writable)
-  return new Response(readable, remoteResp)
+    const resp = new Response(readable, {
+      headers: {
+        'Content-Type': remoteResp.headers.get('Content-Type'),
+        ETag: remoteResp.headers.get('ETag')
+      },
+      status: remoteResp.status,
+      statusText: remoteResp.statusText
+    })
+  return resp
 }
 
 export async function handleFile(request, pathname, downloadUrl, { proxied = false, fileSize = 0 }) {
