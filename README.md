@@ -37,6 +37,18 @@ Note:
 - When obtaining tokens, if Microsoft warns you that you should use type "Single Page Application", don't use it, it's caused by the problem mentioned in step 3.
 - When obtaining tokens, if Microsoft warns you that you need to use "Proof Key for Code Exchange", you have registered an application of type "Single Page Application". Remove all URLs of that type from your Azure settings.
 
+### The refresh token has expired (or "Worker threw exception Error 1101")
+
+#### Check
+If you don't use the worker for more than 90 days, its refresh_token will expire. If you are not sure if your refresh token has expired, go to *Quick Edit* in the Worker admin page. Then *Send* a request to the worker using the dev console, on the *Console* tab below it will show this error from Onedrive API:
+
+```
+getAccessToken error "{\"error\":\"invalid_grant\",\"error_description\":\"AADSTS700082: The refresh token has expired due to inactivity. The token was issued on 2022-03-02T03:54:33.8043551Z and was inactive for 90.00:00:00.
+```
+
+#### Solve
+
+1. Using the [MGAA tool](https://heymind.github.io/tools/microsoft-graph-api-auth),
 ---
 
 [![Hosted on Cloudflare Workers](https://img.shields.io/badge/Hosted%20on-CF%20Workers-f38020?logo=cloudflare&logoColor=f38020&labelColor=282d33)](https://storage.spencerwoo.com/)
@@ -118,7 +130,7 @@ _Very, very long, tedious, step by step guide warning!_
 
 ### Generating OneDrive API Tokens
 
-1. Create a new blade app here [Microsoft Azure App registrations](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) (OneDrive normal version) or [Microsoft Azure.cn App registrations](https://portal.azure.cn/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) (OneDrive 世纪互联版本):
+1. Log in to your Azure domain admin account. Create a new blade app here [Microsoft Azure App registrations](https://portal.azure.com/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) (OneDrive normal version) or [Microsoft Azure.cn App registrations](https://portal.azure.cn/#blade/Microsoft_AAD_RegisteredApps/ApplicationsListBlade) (OneDrive 世纪互联版本):
 
    1. Login with your Microsoft account, select `New registration`.
    2. Input `Name` for your blade app, `my-onedrive-cf-index` for example.
@@ -127,6 +139,8 @@ _Very, very long, tedious, step by step guide warning!_
    5. Click `Register`.
 
    ![](assets/register-app.png)
+
+Note: seems like there might be problems if the application is not created by a Azure domain admin account. The application created by domain admins can be used by others in the domain.
 
 2. Get your Application (client) ID - `client_id` at `Overview` panel.
 
@@ -144,15 +158,34 @@ _Very, very long, tedious, step by step guide warning!_
 
    ![](assets/permissions-used.png)
 
-5. Get your `refresh_token`. On your local machine that has a working installation of Node.js and npm (See [Preparations](#preparations) for recommendations for installing Node.js and its toolchain), execute the following command:
+5. Open `Authentication` panel, click `Add a platform`, select `Web`, fill in the following redirect URL:
 
-   ```sh
-   npx @beetcb/ms-graph-cli
+   ```
+   https://heymind.github.io/tools/microsoft-graph-api-auth
    ```
 
-   <div align="center"><img src="https://raw.githubusercontent.com/beetcb/ms-graph-cli/master/media/demo.svg" alt="demo gif" width="560px" /></div>
+   Under `Front-channel logout URL`, fill in the same URL. (Though it shouldn't matter what you fill in as long as it's a URL.)
 
-   Select the options that you need, and enter the tokens that we just acquired from above. The names are self-explanatory. `redirect_url` can be set to `http://localhost`. For more information please go check out the repo at: [beetcb/ms-graph-cli](https://github.com/beetcb/ms-graph-cli).
+   Under `Implicit grant and hybrid flows`, check both options (Access tokens and ID tokens).
+
+   ![](assets/platform-config.png)
+
+6. Go to the [MGAA tool](https://heymind.github.io/tools/microsoft-graph-api-auth), under `4. Authorize for code`, fill in your client ID. Make sure `Scope` is `offline_access Files.Read Files.Read.All`.
+
+Click `Authorize`. You will be redirected to Microsoft login page. Login and grant permission to the application.
+
+You will be redirected back to MGAA, a prompt will show your "code", copy the code.
+
+Note: if the folder you want to share is owned by an account different from the account you used to create the blade app, you should open the MGAA tool in a different browser (logged in to the folder owner account).
+
+7. Edit `refresh_token.sh`, fill in client ID, client secret and "code" from previous step. Then execute the script. It will return something like this:
+
+   ```
+   {"token_type":"Bearer","scope":"Files.Read Files.Read.All profile openid email","expires_in":5092,"ext_expires_in":5092,"access_token":"eyJ0eXAiO9....",
+   "refresh_token":"0.AXEAR02q_...."}
+   ```
+
+   You now have your refresh_token in quotes `0.AXEAR02q_...`.
 
 6. Finally, create a dedicated folder for your public files inside OneDrive, for instance: `/Public`. Please don't share your root folder directly!
 
