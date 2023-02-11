@@ -18,6 +18,7 @@ export async function getAccessToken() {
   // Token expired, refresh access token with Microsoft API. Both international and china-specific API are supported
   const oneDriveAuthEndpoint = `${config.apiEndpoint.auth}/token`
 
+  // First try: usually data.refresh_token will be more fresh than config.refresh_token
   const resp = await fetch(oneDriveAuthEndpoint, {
     method: 'POST',
     body: `client_id=${config.client_id}&redirect_uri=${config.redirect_uri}&client_secret=${config.client_secret}
@@ -39,8 +40,32 @@ export async function getAccessToken() {
     // Finally, return access token
     return data.access_token
   } else {
-    // eslint-disable-next-line no-throw-literal
-    throw `getAccessToken error ${JSON.stringify(await resp.text())}`
+    // Second try: when refresh_token is expired, one has to manually obtain new refresh_token again and put it in
+    // config. In this situation config.refresh_token will be newer than data.refresh_token, and should be used.
+    const resp = await fetch(oneDriveAuthEndpoint, {
+      method: 'POST',
+      body: `client_id=${config.client_id}&redirect_uri=${config.redirect_uri}&client_secret=${config.client_secret}
+      &refresh_token=${config.refresh_token}&grant_type=refresh_token`,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded'
+      }
+    })
+    if (resp.ok) {
+      console.info('Successfully refreshed access_token.')
+      const data = await resp.json()
+
+      // Update expiration time on token refresh
+      data.expire_at = timestamp() + data.expires_in
+
+      await BUCKET.put('onedrive', JSON.stringify(data))
+      console.info('Successfully updated access_token.')
+
+      // Finally, return access token
+      return data.access_token
+    } else {
+      // eslint-disable-next-line no-throw-literal
+      throw `getAccessToken error ${JSON.stringify(await resp.text())}`
+    }
   }
 }
 
