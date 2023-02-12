@@ -17,20 +17,13 @@ Additional features:
 
 ## Deployment note
 
-### wrangler
+### wrangler [obsolete, wrangler now has 2.x]
 
 Do not use `npm` to install `wrangler`, it didn't work for me.
 
 If you don't often need to use wrangler, installing with `cargo` is also too bloated, just download the executable from https://github.com/cloudflare/wrangler/releases
 
 ### Deploy
-
-The original deployment method doesn't work. Here's a flow that I figured out:
-
-1. Follow the original token retrieval guide below, until step 5.
-2. In step 5, use https://heymind.github.io/tools/microsoft-graph-api-auth (I'll refer to it as MGAA below) instead. Follow its instruction steps 1~4.
-3. In MGAA step 5, use `refresh_token.sh` in this repo instead. You will get a JSON response, remember its `refresh_token`. [Reference](https://github.com/spencerwooo/onedrive-cf-index/issues/13).
-4. Continue following the original guide.
 
 Note:
 - If you encounter `Your secret is too large, it must be 1kB or less.` in `wrangler`, see https://github.com/spencerwooo/onedrive-cf-index/issues/58#issuecomment-733419639
@@ -48,7 +41,8 @@ getAccessToken error "{\"error\":\"invalid_grant\",\"error_description\":\"AADST
 
 #### Solve
 
-1. Using the [MGAA tool](https://heymind.github.io/tools/microsoft-graph-api-auth),
+Follow **step 6 and 7** of the *Generating OneDrive API Tokens* section below. And update the REFRESH_TOKEN using `wrangler secret put`.
+
 ---
 
 [![Hosted on Cloudflare Workers](https://img.shields.io/badge/Hosted%20on-CF%20Workers-f38020?logo=cloudflare&logoColor=f38020&labelColor=282d33)](https://storage.spencerwoo.com/)
@@ -146,7 +140,7 @@ Note: seems like there might be problems if the application is not created by a 
 
    ![](assets/client-id.png)
 
-3. Open `Certificates & secrets` panel, click `New client secret` and create a new secret called `client_secret`, set `Expires` to `Never`, click `Add`, and copy the `Value` of the `client_secret` (**You only have this one chance to copy it.**).
+3. Open `Certificates & secrets` panel, click `New client secret` and create a new secret called `client_secret`, set `Expires` to , click `Add`, and copy the `Value` of the `client_secret` (**You only have this one chance to copy it.**).
 
    ![](assets/add-client-secret.png)
 
